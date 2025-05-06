@@ -5,11 +5,19 @@ import UsersTable from '../../components/users/UsersTable';
 import UserModal from '../../components/users/UserModal';
 import { Modal, ModalContent, Button } from '../../components/Modal.jsx';
 import { toast } from 'react-hot-toast';
+import { MdPersonAdd, MdGroup, MdVerified, MdAdminPanelSettings } from 'react-icons/md';
 
 const Container = styled.div`
     padding: 20px;
     width: 100%;
     box-sizing: border-box;
+    max-width: 100vw;
+    overflow-x: hidden;
+
+    @media (max-width: 768px) {
+        padding-left: 0;
+        padding-right: 0;
+    }
 `;
 
 const Title = styled.h2`
@@ -22,41 +30,70 @@ const ControlsContainer = styled.div`
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    flex-wrap: wrap;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
 `;
 
 const ControlsLeft = styled.div`
     display: flex;
     align-items: center;
     gap: 20px;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
 `;
 
 const AddButton = styled.button`
-    background-color: #3498db;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background-color: rgba(52, 152, 219, 0.08);
+    color: #3498db;
+    border: 1.5px solid #b8d6f4;
+    padding: 9px 18px;
+    border-radius: 7px;
     cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s;
-
+    font-size: 15px;
+    font-weight: 500;
+    box-shadow: none;
+    transition: background 0.2s, color 0.2s, border 0.2s;
+    outline: none;
     &:hover {
-        background-color: #2980b9;
+        background-color: rgba(52, 152, 219, 0.16);
+        color: #217dbb;
+        border-color: #7fbce9;
     }
 `;
 
 const SearchContainer = styled.div`
     display: flex;
     align-items: center;
+    gap: 8px;
+    width: 100%;
+`;
+
+const SearchInputWrapper = styled.div`
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 220px;
 `;
 
 const SearchInput = styled.input`
-    padding: 8px 12px;
+    padding: 6px 32px 6px 8px;
     border: 1px solid #ced4da;
     border-radius: 4px;
     font-size: 14px;
-    width: 250px;
-    margin-right: 10px;
+    width: 100%;
+    margin-right: 0;
 
     &:focus {
         outline: none;
@@ -70,26 +107,87 @@ const SearchIcon = styled.span`
     margin-right: 8px;
 `;
 
+const ClearButton = styled.button`
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #adb5bd;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    &:hover {
+        color: #e74c3c;
+    }
+`;
+
 const ToggleContainer = styled.div`
     display: flex;
     align-items: center;
     background-color: #f8f9fa;
     border-radius: 4px;
-    padding: 5px;
+    padding: 0 8px 0 2px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
 `;
 
 const ToggleButton = styled.button`
-    background-color: ${props => props.$isActive ? '#3498db' : 'transparent'};
-    color: ${props => props.$isActive ? 'white' : '#495057'};
+    display: flex;
+    align-items: center;
+    background-color: ${props =>
+        props.$isActive && props.children === 'Верифицированные'
+            ? 'rgba(40, 167, 69, 0.08)'
+            : props.$isActive
+                ? 'rgba(52, 152, 219, 0.08)'
+                : 'transparent'};
+    color: ${props =>
+        props.$isActive && props.children === 'Верифицированные'
+            ? '#28a745'
+            : props.$isActive
+                ? '#3498db'
+                : '#495057'};
     border: none;
-    padding: 8px 12px;
+    padding: 6px 8px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 14px;
-    transition: all 0.3s;
-
+    font-size: 13px;
+    transition: background-color 0.3s, color 0.3s;
+    font-weight: 500;
+    flex-shrink: 1;
+    min-width: 0;
     &:hover {
-        background-color: ${props => props.$isActive ? '#2980b9' : '#e9ecef'};
+        background-color: ${props =>
+        props.children === 'Верифицированные'
+            ? 'rgba(40, 167, 69, 0.13)'
+            : 'rgba(52, 152, 219, 0.13)'};
+        color: ${props =>
+        props.children === 'Верифицированные'
+            ? '#28a745'
+            : '#217dbb'};
+    }
+`;
+
+const ToggleButtonIcon = styled.span`
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-right: 6px;
+    @media (max-width: 768px) {
+        margin-right: 0;
+    }
+`;
+
+const ToggleButtonText = styled.span`
+    display: inline;
+    @media (max-width: 768px) {
+        display: none;
     }
 `;
 
@@ -181,6 +279,7 @@ const UsersPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
+    const [showAdminsOnly, setShowAdminsOnly] = useState(false);
     const [sortConfig, setSortConfig] = useState({
         key: 'sortPriority',
         direction: 'desc'
@@ -210,17 +309,13 @@ const UsersPage = () => {
             result = result.filter(user => user.is_verified);
         }
 
+        // Фильтрация по администраторам
+        if (showAdminsOnly) {
+            result = result.filter(user => user.is_admin || user.is_superuser);
+        }
+
         // Сортировка
         result.sort((a, b) => {
-            // Сначала сортируем по приоритету (суперпользователи, администраторы, остальные)
-            const priorityA = getPriority(a);
-            const priorityB = getPriority(b);
-
-            if (priorityA !== priorityB) {
-                return priorityB - priorityA;
-            }
-
-            // Затем по выбранному полю
             if (sortConfig.key === 'fio') {
                 const fioA = (a.last_name || '') + ' ' + (a.first_name || '') + ' ' + (a.sur_name || '');
                 const fioB = (b.last_name || '') + ' ' + (b.first_name || '') + ' ' + (b.sur_name || '');
@@ -228,7 +323,6 @@ const UsersPage = () => {
                     ? fioA.localeCompare(fioB)
                     : fioB.localeCompare(fioA);
             }
-
             if (sortConfig.key === 'telegram_username') {
                 const usernameA = a.telegram_username || '';
                 const usernameB = b.telegram_username || '';
@@ -236,43 +330,31 @@ const UsersPage = () => {
                     ? usernameA.localeCompare(usernameB)
                     : usernameB.localeCompare(usernameA);
             }
-
             if (sortConfig.key === 'is_verified') {
                 return sortConfig.direction === 'asc'
                     ? (a.is_verified ? 1 : 0) - (b.is_verified ? 1 : 0)
                     : (b.is_verified ? 1 : 0) - (a.is_verified ? 1 : 0);
             }
-
             if (sortConfig.key === 'is_admin') {
                 return sortConfig.direction === 'asc'
                     ? (a.is_admin ? 1 : 0) - (b.is_admin ? 1 : 0)
                     : (b.is_admin ? 1 : 0) - (a.is_admin ? 1 : 0);
             }
-
             if (sortConfig.key === 'is_superuser') {
                 return sortConfig.direction === 'asc'
                     ? (a.is_superuser ? 1 : 0) - (b.is_superuser ? 1 : 0)
                     : (b.is_superuser ? 1 : 0) - (a.is_superuser ? 1 : 0);
             }
-
             if (sortConfig.key === 'is_active') {
                 return sortConfig.direction === 'asc'
                     ? (a.is_active ? 1 : 0) - (b.is_active ? 1 : 0)
                     : (b.is_active ? 1 : 0) - (a.is_active ? 1 : 0);
             }
-
             return 0;
         });
 
         setFilteredUsers(result);
-    }, [searchTerm, users, showVerifiedOnly, sortConfig]);
-
-    // Функция для определения приоритета пользователя
-    const getPriority = (user) => {
-        if (user.is_superuser) return 3;
-        if (user.is_admin) return 2;
-        return 1;
-    };
+    }, [searchTerm, users, showVerifiedOnly, showAdminsOnly, sortConfig]);
 
     // Функция для загрузки пользователей
     const fetchUsers = async () => {
@@ -385,29 +467,55 @@ const UsersPage = () => {
                 <ControlsLeft>
                     <SearchContainer>
                         <SearchIcon>🔍</SearchIcon>
-                        <SearchInput
-                            type="text"
-                            placeholder="Поиск по имени или никнейму..."
-                            value={searchTerm}
-                            onChange={handleSearchChange}
-                        />
+                        <SearchInputWrapper>
+                            <SearchInput
+                                type="text"
+                                placeholder="Поиск по имени или никнейму..."
+                                value={searchTerm}
+                                onChange={handleSearchChange}
+                            />
+                            {searchTerm && (
+                                <ClearButton onClick={() => setSearchTerm(' ')} title="Очистить">
+                                    ×
+                                </ClearButton>
+                            )}
+                        </SearchInputWrapper>
+                        <ToggleContainer>
+                            <ToggleButton
+                                $isActive={!showVerifiedOnly && !showAdminsOnly}
+                                onClick={() => {
+                                    setShowVerifiedOnly(false);
+                                    setShowAdminsOnly(false);
+                                }}
+                            >
+                                <ToggleButtonIcon><MdGroup /></ToggleButtonIcon>
+                                <ToggleButtonText>Все пользователи</ToggleButtonText>
+                            </ToggleButton>
+                            <ToggleButton
+                                $isActive={showVerifiedOnly}
+                                onClick={() => {
+                                    setShowVerifiedOnly(true);
+                                    setShowAdminsOnly(false);
+                                }}
+                            >
+                                <ToggleButtonIcon><MdVerified /></ToggleButtonIcon>
+                                <ToggleButtonText>Верифицированные</ToggleButtonText>
+                            </ToggleButton>
+                            <ToggleButton
+                                $isActive={showAdminsOnly}
+                                onClick={() => {
+                                    setShowVerifiedOnly(false);
+                                    setShowAdminsOnly(true);
+                                }}
+                            >
+                                <ToggleButtonIcon><MdAdminPanelSettings /></ToggleButtonIcon>
+                                <ToggleButtonText>Администраторы</ToggleButtonText>
+                            </ToggleButton>
+                        </ToggleContainer>
                     </SearchContainer>
-                    <ToggleContainer>
-                        <ToggleButton
-                            $isActive={!showVerifiedOnly}
-                            onClick={() => setShowVerifiedOnly(false)}
-                        >
-                            Все пользователи
-                        </ToggleButton>
-                        <ToggleButton
-                            $isActive={showVerifiedOnly}
-                            onClick={() => setShowVerifiedOnly(true)}
-                        >
-                            Верифицированные
-                        </ToggleButton>
-                    </ToggleContainer>
                 </ControlsLeft>
                 <AddButton onClick={handleAddUser}>
+                    <MdPersonAdd size={20} />
                     Добавить пользователя
                 </AddButton>
             </ControlsContainer>

@@ -10,56 +10,59 @@ import HomePage from './pages/HomePage';
 import './App.css';
 import { Toaster } from 'react-hot-toast';
 import NotFoundPage from './pages/NotFoundPage';
+import { MobileMenuProvider } from './context/MobileMenuContext';
 
 function App() {
   return (
     <Router>
-      <Toaster position="top-right" />
-      <Routes>
-        {/* Главная страница */}
-        <Route path="/" element={<HomePage />} />
+      <MobileMenuProvider>
+        <Toaster position="top-right" />
+        <Routes>
+          {/* Главная страница */}
+          <Route path="/" element={<HomePage />} />
 
-        {/* Маршруты админ-панели */}
-        <Route path="/admin/login" element={<LoginPage />} />
+          {/* Маршруты админ-панели */}
+          <Route path="/admin/login" element={<LoginPage />} />
 
-        {/* Защищенные маршруты дашборда */}
-        <Route path="/admin/dashboard" element={
-          <PrivateRoute>
-            <DashboardLayout />
-          </PrivateRoute>
-        }>
-          <Route index element={<DashboardHome />} />
-        </Route>
+          {/* Защищенные маршруты дашборда */}
+          <Route path="/admin/dashboard" element={
+            <PrivateRoute>
+              <DashboardLayout />
+            </PrivateRoute>
+          }>
+            <Route index element={<DashboardHome />} />
+          </Route>
 
-        {/* Защищенные маршруты для постов и пользователей */}
-        <Route path="/admin/posts" element={
-          <PrivateRoute>
-            <DashboardLayout />
-          </PrivateRoute>
-        }>
-          <Route index element={<PostsPage />} />
-        </Route>
+          {/* Защищенные маршруты для постов и пользователей */}
+          <Route path="/admin/posts" element={
+            <PrivateRoute>
+              <DashboardLayout />
+            </PrivateRoute>
+          }>
+            <Route index element={<PostsPage />} />
+          </Route>
 
-        <Route path="/admin/users" element={
-          <PrivateRoute>
-            <DashboardLayout />
-          </PrivateRoute>
-        }>
-          <Route index element={<UsersPage />} />
-        </Route>
+          <Route path="/admin/users" element={
+            <PrivateRoute>
+              <DashboardLayout />
+            </PrivateRoute>
+          }>
+            <Route index element={<UsersPage />} />
+          </Route>
 
-        {/* Перенаправление с /admin на /admin/dashboard */}
-        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          {/* Перенаправление с /admin на /admin/dashboard */}
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
 
-        {/* Редирект на /admin/login для любых других /admin/... если не авторизован */}
-        <Route path="/admin/*" element={<Navigate to="/admin/login" replace />} />
+          {/* Редирект на /admin/login для любых других /admin/... если не авторизован */}
+          <Route path="/admin/*" element={<Navigate to="/admin/login" replace />} />
 
-        {/* Редирект с /login на /admin/login */}
-        <Route path="/login" element={<Navigate to="/admin/login" replace />} />
+          {/* Редирект с /login на /admin/login */}
+          <Route path="/login" element={<Navigate to="/admin/login" replace />} />
 
-        {/* Страница 404 для всех некорректных ссылок */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+          {/* Страница 404 для всех некорректных ссылок */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </MobileMenuProvider>
     </Router>
   );
 }

@@ -123,18 +123,102 @@ const ChartCard = styled.div`
     margin-top: 20px;
     max-width: 100%;
     overflow: hidden;
+
+    @media (max-width: 768px) {
+        padding: 15px;
+    }
 `;
 
 const ChartContainer = styled.div`
     max-width: 100%;
     height: 400px;
     position: relative;
+
+    @media (max-width: 768px) {
+        height: 300px;
+    }
 `;
 
 const ChartTitle = styled.h3`
     color: #2c3e50;
     margin-bottom: 15px;
     text-align: center;
+`;
+
+const ViewToggle = styled.div`
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+`;
+
+const ToggleButton = styled.button`
+    padding: 8px 16px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: ${props => props.$active ? '#3498db' : 'white'};
+    color: ${props => props.$active ? 'white' : '#495057'};
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: ${props => props.$active ? '#2980b9' : '#f8f9fa'};
+    }
+`;
+
+const TimeRangeToggle = styled.div`
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+
+    @media (max-width: 768px) {
+        gap: 6px;
+    }
+`;
+
+const TimeRangeButton = styled.button`
+    padding: 6px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: ${props => props.$active ? '#3498db' : 'white'};
+    color: ${props => props.$active ? 'white' : '#495057'};
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+
+    &:hover {
+        background-color: ${props => props.$active ? '#2980b9' : '#f8f9fa'};
+    }
+
+    @media (max-width: 768px) {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+`;
+
+const StatsTable = styled.table`
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 14px;
+
+    th, td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    tr:last-child td {
+        border-bottom: none;
+    }
 `;
 
 const LoadingSpinner = styled.div`
@@ -169,6 +253,9 @@ const DashboardHome = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [chartDimensions, setChartDimensions] = useState({ width: 0, height: 0 });
+    const [viewMode, setViewMode] = useState('chart');
+    const [timeRange, setTimeRange] = useState('month');
+    const [filteredPostsByDate, setFilteredPostsByDate] = useState([]);
 
     // Функция для обновления размеров графика
     const updateChartDimensions = () => {
@@ -250,6 +337,52 @@ const DashboardHome = () => {
         fetchData();
     }, []);
 
+    // Функция для фильтрации данных по выбранному периоду
+    const filterDataByTimeRange = (data, range) => {
+        const now = new Date();
+        const filteredData = data.filter(([date]) => {
+            // Преобразуем дату из формата DD.MM.YYYY в объект Date
+            const [day, month, year] = date.split('.');
+            const postDate = new Date(year, month - 1, day);
+            postDate.setHours(0, 0, 0, 0);
+
+            switch (range) {
+                case 'week': {
+                    const weekAgo = new Date(now);
+                    weekAgo.setDate(now.getDate() - 7);
+                    weekAgo.setHours(0, 0, 0, 0);
+                    return postDate >= weekAgo;
+                }
+                case 'month': {
+                    const monthAgo = new Date(now);
+                    monthAgo.setMonth(now.getMonth() - 1);
+                    monthAgo.setHours(0, 0, 0, 0);
+                    return postDate >= monthAgo;
+                }
+                case 'year': {
+                    const yearAgo = new Date(now);
+                    yearAgo.setFullYear(now.getFullYear() - 1);
+                    yearAgo.setHours(0, 0, 0, 0);
+                    return postDate >= yearAgo;
+                }
+                default:
+                    return true;
+            }
+        });
+
+        // Сортируем отфильтрованные данные по дате
+        return filteredData.sort((a, b) => {
+            const [dayA, monthA, yearA] = a[0].split('.');
+            const [dayB, monthB, yearB] = b[0].split('.');
+            return new Date(yearA, monthA - 1, dayA) - new Date(yearB, monthB - 1, dayB);
+        });
+    };
+
+    // Обновляем отфильтрованные данные при изменении периода или исходных данных
+    useEffect(() => {
+        setFilteredPostsByDate(filterDataByTimeRange(postsByDate, timeRange));
+    }, [postsByDate, timeRange]);
+
     // Настройки графика
     const chartOptions = {
         responsive: true,
@@ -273,20 +406,20 @@ const DashboardHome = () => {
         }
     };
 
-    // Данные для графика
+    // Обновляем данные для графика
     const chartData = {
-        labels: postsByDate.map(item => item[0]),
+        labels: filteredPostsByDate.map(item => item[0]),
         datasets: [
             {
                 label: 'Просмотры',
-                data: postsByDate.map(item => item[1].views),
+                data: filteredPostsByDate.map(item => item[1].views),
                 borderColor: 'rgb(52, 152, 219)',
                 backgroundColor: 'rgba(52, 152, 219, 0.5)',
                 tension: 0.1
             },
             {
                 label: 'Лайки',
-                data: postsByDate.map(item => item[1].likes),
+                data: filteredPostsByDate.map(item => item[1].likes),
                 borderColor: 'rgb(231, 76, 60)',
                 backgroundColor: 'rgba(231, 76, 60, 0.5)',
                 tension: 0.1
@@ -341,14 +474,92 @@ const DashboardHome = () => {
 
                     <ChartCard>
                         <ChartTitle>Статистика постов</ChartTitle>
-                        <ChartContainer ref={chartRef}>
-                            <Line
-                                options={chartOptions}
-                                data={chartData}
-                                width={chartDimensions.width}
-                                height={chartDimensions.height}
-                            />
-                        </ChartContainer>
+                        <ViewToggle>
+                            <ToggleButton
+                                $active={viewMode === 'chart'}
+                                onClick={() => setViewMode('chart')}
+                            >
+                                График
+                            </ToggleButton>
+                            <ToggleButton
+                                $active={viewMode === 'table'}
+                                onClick={() => setViewMode('table')}
+                            >
+                                Таблица
+                            </ToggleButton>
+                        </ViewToggle>
+
+                        <TimeRangeToggle>
+                            <TimeRangeButton
+                                $active={timeRange === 'week'}
+                                onClick={() => setTimeRange('week')}
+                            >
+                                Неделя
+                            </TimeRangeButton>
+                            <TimeRangeButton
+                                $active={timeRange === 'month'}
+                                onClick={() => setTimeRange('month')}
+                            >
+                                Месяц
+                            </TimeRangeButton>
+                            <TimeRangeButton
+                                $active={timeRange === 'year'}
+                                onClick={() => setTimeRange('year')}
+                            >
+                                Год
+                            </TimeRangeButton>
+                            <TimeRangeButton
+                                $active={timeRange === 'all'}
+                                onClick={() => setTimeRange('all')}
+                            >
+                                Все время
+                            </TimeRangeButton>
+                        </TimeRangeToggle>
+
+                        {viewMode === 'chart' ? (
+                            <ChartContainer ref={chartRef}>
+                                <Line
+                                    options={{
+                                        ...chartOptions,
+                                        plugins: {
+                                            ...chartOptions.plugins,
+                                            legend: {
+                                                position: 'top',
+                                                labels: {
+                                                    boxWidth: 12,
+                                                    padding: 10,
+                                                    font: {
+                                                        size: window.innerWidth <= 768 ? 10 : 12
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }}
+                                    data={chartData}
+                                    width={chartDimensions.width}
+                                    height={chartDimensions.height}
+                                />
+                            </ChartContainer>
+                        ) : (
+                            <StatsTable>
+                                <thead>
+                                    <tr>
+                                        <th>Дата</th>
+                                        <th>Просмотры</th>
+                                        <th>Лайки</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredPostsByDate.map(([date, stats]) => (
+                                        <tr key={date}>
+                                            <td>{date}</td>
+                                            <td>{stats.views}</td>
+                                            <td>{stats.likes}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </StatsTable>
+                        )}
                     </ChartCard>
                 </>
             )}

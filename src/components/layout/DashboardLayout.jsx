@@ -8,20 +8,29 @@ import SuperUserToggle from '../common/SuperUserToggle';
 const LayoutContainer = styled.div`
     display: flex;
     min-height: 100vh;
+    background-color: #f5f6fa;
 `;
 
 const MainContent = styled.main`
     flex: 1;
-    margin-left: 250px; /* Ширина сайдбара */
-    padding: 80px 20px 20px; /* Отступ сверху для заголовка */
+    margin-left: 250px;
+    padding-top: 60px;
+    padding-bottom: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
+
+    @media (max-width: 768px) {
+        margin-left: 0;
+        padding: 60px 15px 20px;
+    }
 `;
 
-const DashboardLayout = () => {
+const DashboardLayout = ({ children }) => {
     return (
         <LayoutContainer>
             <Sidebar />
-            <Header />
             <MainContent>
+                <Header />
                 <Outlet />
             </MainContent>
             <SuperUserToggle />

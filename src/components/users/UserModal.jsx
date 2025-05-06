@@ -14,6 +14,17 @@ const ModalOverlay = styled.div`
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    @media (max-width: 768px) {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        min-width: 100%;
+        min-height: 100%;
+        padding: 0;
+        justify-content: unset;
+        align-items: unset;
+    }
 `;
 
 // Контейнер модального окна
@@ -25,6 +36,17 @@ const ModalContent = styled.div`
     max-width: 600px;
     max-height: 90vh;
     overflow-y: auto;
+    @media (max-width: 768px) {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 0;
+        padding: 0;
+        margin: 0 !important;
+    }
 `;
 
 const ModalHeader = styled.div`
@@ -342,6 +364,27 @@ const SuggestionItem = styled.div`
     }
 `;
 
+const TelegramSection = styled.div`
+    margin-bottom: 18px;
+`;
+const TelegramHeader = styled.div`
+    font-weight: 600;
+    color: #495057;
+    font-size: 14px;
+    margin-bottom: 8px;
+`;
+const TelegramRow = styled.div`
+    display: flex;
+    gap: 12px;
+    @media (max-width: 500px) {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+`;
+const TelegramColumn = styled.div`
+    flex: 1;
+`;
+
 const UserModal = ({ isOpen, onClose, onSave, user = null }) => {
     const [formData, setFormData] = useState({
         telegram_id: '',
@@ -514,6 +557,16 @@ const UserModal = ({ isOpen, onClose, onSave, user = null }) => {
         return `${year}-${month}-${day}`;
     };
 
+    useEffect(() => {
+        if (isOpen) {
+            const originalOverflow = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
+            return () => {
+                document.body.style.overflow = originalOverflow;
+            };
+        }
+    }, [isOpen]);
+
     if (!isOpen) return null;
 
     return (
@@ -525,32 +578,35 @@ const UserModal = ({ isOpen, onClose, onSave, user = null }) => {
                 </ModalHeader>
                 <form onSubmit={handleSubmit}>
                     <ModalBody>
-                        <FormRow>
-                            <FormColumn>
-                                <FormGroup>
-                                    <Label htmlFor="telegram_id">ID (Telegram)</Label>
-                                    <Input
-                                        type="text"
-                                        id="telegram_id"
-                                        name="telegram_id"
-                                        value={formData.telegram_id}
-                                        disabled
-                                    />
-                                </FormGroup>
-                            </FormColumn>
-                            <FormColumn>
-                                <FormGroup>
-                                    <Label htmlFor="telegram_username">Имя пользователя (Telegram)</Label>
-                                    <Input
-                                        type="text"
-                                        id="telegram_username"
-                                        name="telegram_username"
-                                        value={formData.telegram_username}
-                                        disabled
-                                    />
-                                </FormGroup>
-                            </FormColumn>
-                        </FormRow>
+                        <TelegramSection>
+                            <TelegramHeader>Telegram</TelegramHeader>
+                            <TelegramRow>
+                                <TelegramColumn>
+                                    <FormGroup style={{ marginBottom: 0 }}>
+                                        <Label htmlFor="telegram_id">ID</Label>
+                                        <Input
+                                            type="text"
+                                            id="telegram_id"
+                                            name="telegram_id"
+                                            value={formData.telegram_id}
+                                            disabled
+                                        />
+                                    </FormGroup>
+                                </TelegramColumn>
+                                <TelegramColumn>
+                                    <FormGroup style={{ marginBottom: 0 }}>
+                                        <Label htmlFor="telegram_username">Username</Label>
+                                        <Input
+                                            type="text"
+                                            id="telegram_username"
+                                            name="telegram_username"
+                                            value={formData.telegram_username}
+                                            disabled
+                                        />
+                                    </FormGroup>
+                                </TelegramColumn>
+                            </TelegramRow>
+                        </TelegramSection>
 
                         <FormRow>
                             <FormColumn style={{ flex: '3' }}>
