@@ -270,6 +270,61 @@ const CancelButton = styled(Button)`
     }
 `;
 
+// Кастомное уведомление для мобильных
+const MobileNotificationContainer = styled.div`
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: ${props => props.$type === 'success' ? 'rgba(60,180,60,0.85)' : 'rgba(200,60,60,0.85)'};
+    color: #fff;
+    padding: 16px 28px;
+    border-radius: 12px;
+    font-size: 16px;
+    z-index: 2000;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+    text-align: center;
+    min-width: 180px;
+    max-width: 80vw;
+    opacity: ${props => (props.$visible ? 1 : 0)};
+    transition: opacity 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+`;
+
+const MobileNotificationIcon = styled.span`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+`;
+
+const MobileNotification = ({ message, type, visible }) => (
+    <MobileNotificationContainer
+        $visible={visible}
+        $type={type}
+    >
+        <MobileNotificationIcon>
+            {type === 'success' ? (
+                // Галочка (SVG)
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="11" cy="11" r="11" fill="#34c759" />
+                    <path d="M6 12.5L10 16L16 8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+            ) : (
+                // Крестик (SVG)
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="11" cy="11" r="11" fill="#e74c3c" />
+                    <path d="M7 7L15 15" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
+                    <path d="M15 7L7 15" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
+                </svg>
+            )}
+        </MobileNotificationIcon>
+        <span>{message}</span>
+    </MobileNotificationContainer>
+);
+
 const UsersPage = () => {
     const [users, setUsers] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
@@ -286,6 +341,8 @@ const UsersPage = () => {
     });
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [modalAction, setModalAction] = useState(null);
+    const [mobileNotification, setMobileNotification] = useState(null);
+    const [mobileNotificationVisible, setMobileNotificationVisible] = useState(false);
 
     // Загрузка пользователей при монтировании компонента
     useEffect(() => {
@@ -391,17 +448,15 @@ const UsersPage = () => {
     const handleSaveUser = async (userData) => {
         try {
             if (selectedUser) {
-                // Редактирование существующего пользователя
-                console.log('userData', userData);
                 await userService.updateUser(selectedUser.id, userData);
             } else {
-                // Добавление нового пользователя
                 await userService.createUser(userData);
             }
-            // Обновляем список пользователей после сохранения
             fetchUsers();
             setIsModalOpen(false);
+            showNotification('Данные сохранены', 'success');
         } catch (err) {
+            showNotification('Ошибка сохранения', 'error');
             alert('Не удалось сохранить пользователя. Пожалуйста, попробуйте позже.');
             console.error('Ошибка при сохранении пользователя:', err);
         }
@@ -433,10 +488,10 @@ const UsersPage = () => {
         try {
             if (modalAction === 'delete') {
                 await userService.deleteUser(selectedUser.id);
-                toast.success('Пользователь успешно удален');
+                showNotification('Данные удалены', 'success');
             } else if (modalAction === 'removeFromChannel') {
                 await userService.removeFromChannel(selectedUser.id);
-                toast.success('Пользователь успешно удален из канала');
+                showNotification('Пользователь удалён из канала', 'success');
             }
             setShowConfirmModal(false);
             setSelectedUser(null);
@@ -444,7 +499,7 @@ const UsersPage = () => {
             fetchUsers();
         } catch (error) {
             console.error(`Error ${modalAction === 'delete' ? 'deleting' : 'removing from channel'} user:`, error);
-            toast.error(`Ошибка при ${modalAction === 'delete' ? 'удалении' : 'удалении из канала'} пользователя`);
+            showNotification(`Ошибка при ${modalAction === 'delete' ? 'удалении' : 'удалении из канала'} пользователя`, 'error');
         }
     };
 
@@ -458,6 +513,33 @@ const UsersPage = () => {
         return modalAction === 'delete'
             ? `Вы уверены, что хотите удалить пользователя ${selectedUser?.fio}? Это действие нельзя отменить.`
             : `Вы уверены, что хотите удалить пользователя ${selectedUser?.fio} из канала? Это действие нельзя отменить.`;
+    };
+
+    // Универсальная функция показа уведомления
+    const showNotification = (message, type = 'success') => {
+        if (window.innerWidth <= 768) {
+            setMobileNotification({ message, type });
+            setMobileNotificationVisible(true);
+            setTimeout(() => setMobileNotificationVisible(false), 1700); // Начинаем плавное исчезновение
+            setTimeout(() => setMobileNotification(null), 2000); // Убираем из DOM
+        } else {
+            toast[type](message, {
+                duration: 2000,
+                position: 'bottom-right',
+                style: {
+                    background: type === 'success' ? '#e6f9ed' : '#fdeaea',
+                    color: type === 'success' ? '#218838' : '#c0392b',
+                    border: '1px solid ' + (type === 'success' ? '#b7e4c7' : '#f5c6cb'),
+                    borderRadius: '10px',
+                    fontSize: '15px',
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.08)'
+                },
+                iconTheme: {
+                    primary: type === 'success' ? '#34c759' : '#e74c3c',
+                    secondary: '#fff',
+                },
+            });
+        }
     };
 
     return (
@@ -561,6 +643,14 @@ const UsersPage = () => {
                         </ConfirmModalButtons>
                     </ConfirmModalContent>
                 </ConfirmModal>
+            )}
+
+            {mobileNotification && (
+                <MobileNotification
+                    message={mobileNotification.message}
+                    type={mobileNotification.type}
+                    visible={mobileNotificationVisible}
+                />
             )}
         </Container>
     );
