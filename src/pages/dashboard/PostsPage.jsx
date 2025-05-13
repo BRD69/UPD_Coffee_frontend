@@ -4,13 +4,20 @@ import ReactMarkdown from 'react-markdown';
 import { postService } from '../../services/postService';
 import { userService } from '../../services/userService';
 import { createPortal } from 'react-dom';
+import { FaTrash, FaImage, FaChevronDown, FaLink, FaPaperPlane, FaUndo, FaEye, FaMoon, FaSun, FaHeart, FaSync } from 'react-icons/fa';
+import { showNotification } from '../../utils/showNotification';
 
 const Container = styled.div`
     padding: 20px;
-    display: flex;
-    gap: 20px;
-    min-height: 100vh;
-    overflow: visible;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+
+    @media (max-width: 768px) {
+        padding: 10px 0;
+        width: 100%;
+        overflow-x: hidden;
+    }
 `;
 
 const Title = styled.h2`
@@ -29,6 +36,14 @@ const PostsTableContainer = styled.div`
     flex-direction: column;
     height: calc(100vh - 150px);
     overflow: hidden;
+
+    @media (max-width: 768px) {
+        padding: 15px;
+        height: auto;
+        width: 100%;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
 `;
 
 const TableHeaderContainer = styled.div`
@@ -36,6 +51,12 @@ const TableHeaderContainer = styled.div`
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
 `;
 
 const FilterContainer = styled.div`
@@ -46,12 +67,26 @@ const FilterContainer = styled.div`
     padding: 15px;
     background-color: #f8f9fa;
     border-radius: 8px;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding: 10px 6px;
+    }
 `;
 
 const DateFilter = styled.div`
     display: flex;
     gap: 10px;
     align-items: center;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+        width: 100%;
+    }
 `;
 
 const DateInput = styled.input`
@@ -60,17 +95,26 @@ const DateInput = styled.input`
     border-radius: 4px;
     font-size: 14px;
     color: #495057;
+    width: auto;
 
     &:focus {
         outline: none;
         border-color: #3498db;
         box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.25);
     }
+
+    @media (max-width: 768px) {
+        width: 100%;
+        font-size: 15px;
+    }
 `;
 
 const FilterLabel = styled.span`
     color: #495057;
     font-size: 14px;
+    @media (max-width: 768px) {
+        margin-bottom: 2px;
+    }
 `;
 
 const FetchPostsButton = styled.button`
@@ -81,6 +125,10 @@ const FetchPostsButton = styled.button`
     border-radius: 4px;
     font-size: 14px;
     transition: all 0.2s ease;
+
+    @media (max-width: 768px) {
+        width: 100%;
+    }
 
     &:hover {
         background-color: rgba(52, 152, 219, 0.2);
@@ -93,12 +141,25 @@ const FetchPostsButton = styled.button`
 `;
 
 const TableWrapper = styled.div`
-    overflow-y: auto;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
     margin-top: 20px;
     border-radius: 8px;
     border: 1px solid #e9ecef;
     flex: 1;
     min-height: 0;
+
+    @media (max-width: 768px) {
+        margin-top: 15px;
+    }
+`;
+
+const MobileTable = styled.div`
+    display: none;
+    @media (max-width: 768px) {
+        display: block;
+    }
 `;
 
 const Table = styled.table`
@@ -108,6 +169,9 @@ const Table = styled.table`
     font-size: 14px;
     border-radius: 8px;
     overflow: hidden;
+    @media (max-width: 768px) {
+        display: none;
+    }
 `;
 
 const TableHeader = styled.thead`
@@ -175,6 +239,12 @@ const TableHeaderCell = styled.th`
     background-color: #f8f9fa;
     border-bottom: 2px solid #e9ecef;
     position: relative;
+    white-space: nowrap;
+
+    @media (max-width: 768px) {
+        padding: 12px 8px;
+        font-size: 11px;
+    }
 
     &:first-child {
         padding-left: 20px;
@@ -191,6 +261,12 @@ const TableCell = styled.td`
     color: #212529;
     font-size: 14px;
     transition: all 0.2s ease;
+    white-space: nowrap;
+
+    @media (max-width: 768px) {
+        padding: 12px 8px;
+        font-size: 12px;
+    }
 
     &:first-child {
         padding-left: 20px;
@@ -238,6 +314,13 @@ const NewPostRow = styled.div`
     width: 100%;
     gap: 20px;
     margin-bottom: 24px;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        gap: 0;
+        width: 100%;
+        margin-bottom: 16px;
+    }
 `;
 
 const NewPostContainer = styled.div`
@@ -264,16 +347,21 @@ const NewPostContainer = styled.div`
     flex-direction: column;
     height: auto;
     overflow: hidden;
+
+    @media (max-width: 768px) {
+        padding: 15px;
+    }
 `;
 
 const PreviewPostContainer = styled.div`
-    flex: 4 1 0%;
+    flex: 1;
+    padding: 20px;
+    background-color: ${props => props.$isDarkMode ? '#354457' : '#f8f9fa'};
     display: flex;
-    flex-direction: column;
-    height: auto;
-    overflow: hidden;
-    justify-content: flex-start;
-    align-items: center;
+    justify-content: center;
+    align-items: flex-start;
+    overflow-y: auto;
+    width: 100%;
 `;
 
 const FormContent = styled.div`
@@ -287,36 +375,76 @@ const FormContent = styled.div`
 `;
 
 const PostTypeSelect = styled.select`
-    padding: 8px 12px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
+    padding: 8px 32px 8px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
     font-size: 14px;
     margin-left: 10px;
     background-color: white;
     cursor: pointer;
+    appearance: none;
+    background-image: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    position: relative;
+
+    @media (max-width: 768px) {
+        width: 100%;
+        margin-left: 0;
+    }
 
     &:focus {
         outline: none;
         border-color: #3498db;
-        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.25);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+    }
+
+    &:hover {
+        border-color: #3498db;
+    }
+`;
+
+const SelectWrapper = styled.div`
+    position: relative;
+    display: inline-block;
+    margin-left: 10px;
+
+    @media (max-width: 768px) {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    svg {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+        pointer-events: none;
     }
 `;
 
 const PostTypeOption = styled.option`
-    color: ${props => {
-        switch (props.value) {
-            case 'info':
-                return '#3498db';
-            case 'rubric':
-                return '#2ecc71';
-            case 'challenge':
-                return '#e67e22';
-            case 'update':
-                return '#f1c40f';
-            default:
-                return '#495057';
-        }
-    }};
+    padding: 8px;
+    color: #2c3e50;
+    background-color: white;
+    font-size: 14px;
+
+    &[value="info"] {
+        color: #3498db;
+    }
+
+    &[value="rubric"] {
+        color: #2ecc71;
+    }
+
+    &[value="challenge"] {
+        color: #e67e22;
+    }
+
+    &[value="update"] {
+        color: #f1c40f;
+    }
 `;
 
 const TitleContainer = styled.div`
@@ -324,40 +452,30 @@ const TitleContainer = styled.div`
     justify-content: flex-start;
     align-items: center;
     margin-bottom: 20px;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
 `;
 
 const ImagePreview = styled.div`
-    width: 300px;
-    height: 150px;
-    border: 1px dashed #ced4da;
+    height: 36px;
+    border: 1px solid #ced4da;
     border-radius: 4px;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 0 auto 10px;
     overflow: hidden;
     position: relative;
-    flex: 0 0 auto;
 `;
 
 const ImagePreviewImg = styled.img`
     max-width: 100%;
     max-height: 100%;
-    object-fit: contain;
-    border: 3px solid ${props => {
-        switch (props.postType) {
-            case 'info':
-                return '#3498db';
-            case 'rubric':
-                return '#2ecc71';
-            case 'challenge':
-                return '#e67e22';
-            case 'update':
-                return '#f1c40f';
-            default:
-                return 'transparent';
-        }
-    }};
+    object-fit: cover;
     border-radius: 4px;
 `;
 
@@ -401,6 +519,49 @@ const TextArea = styled.textarea`
         outline: none;
         border-color: #3498db;
         box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.25);
+    }
+`;
+
+const FormattedTextArea = styled.div`
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+    min-height: 350px;
+    position: relative;
+    z-index: 1;
+    background-color: white;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: #111 !important;
+    * {
+        color: #111 !important;
+    }
+    &:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.25);
+    }
+    b {
+        font-weight: bold;
+    }
+    i {
+        font-style: italic;
+    }
+    u {
+        text-decoration: underline;
+    }
+    s {
+        text-decoration: line-through;
+    }
+    a {
+        color: #3498db !important;
+        text-decoration: none;
+        &:hover {
+            text-decoration: underline;
+        }
     }
 `;
 
@@ -481,29 +642,25 @@ const SideActionsBlock = styled.div`
 
 const ImageActions = styled.div`
     display: flex;
-    flex-direction: column;
     gap: 10px;
-    flex: 0 0 auto;
-    justify-content: flex-start;
-    align-items: flex-start;
+    margin-top: 10px;
+    border-radius: 4px;
 `;
 
 const ImageUploadButton = styled.label`
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 8px 16px;
     background-color: #f8f9fa;
     border: 1px solid #ced4da;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 14px;
     transition: background-color 0.3s;
-    min-width: 140px;
-    max-width: 100%;
-    text-align: center;
-    white-space: normal;
-    word-break: break-word;
+    height: 36px;
     box-sizing: border-box;
-    margin-bottom: 8px;
+    white-space: nowrap;
 
     &:hover {
         background-color: #e9ecef;
@@ -511,46 +668,95 @@ const ImageUploadButton = styled.label`
 `;
 
 const DeleteImageButton = styled.button`
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    padding: 8px 16px;
+    background-color: #f8f9fa;
+    color: #dc3545;
+    border: 1px solid #dc3545;
+    padding: 8px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 12px;
-    transition: background-color 0.3s;
-    min-width: 140px;
-    max-width: 100%;
-    text-align: center;
-    white-space: normal;
-    word-break: break-word;
-    box-sizing: border-box;
-    margin-bottom: 8px;
-    height: auto;
-    line-height: 1.2;
+    font-size: 14px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
 
     &:hover {
-        background-color: #c82333;
+        background-color: #dc3545;
+        color: white;
     }
 `;
 
 const HiddenFileInput = styled.input`
-    display: none;
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
 `;
 
 const PublishButton = styled.button`
     background-color: #3498db;
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 8px 16px;
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
-    transition: background-color 0.3s;
-    width: 100%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 36px;
+
+    @media (max-width: 768px) {
+        width: 100%;
+        margin-bottom: 8px;
+        order: 1;
+    }
 
     &:hover {
         background-color: #2980b9;
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+`;
+
+const ResetDraftButton = styled.button`
+    background-color: #f8f9fa;
+    color: #dc3545;
+    border: 1px solid #dc3545;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+
+    &:hover {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+
+    @media (max-width: 768px) {
+        width: 36px;
+        margin-bottom: 0;
+        order: 3;
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
     }
 `;
 
@@ -562,6 +768,20 @@ const FormattingToolbar = styled.div`
     border: 1px solid #ced4da;
     border-radius: 4px;
     background-color: #f8f9fa;
+    align-items: center;
+    flex-wrap: wrap;
+
+    @media (max-width: 768px) {
+        gap: 3px;
+        padding: 3px;
+    }
+`;
+
+const Divider = styled.div`
+    width: 1px;
+    height: 20px;
+    background-color: #ced4da;
+    margin: 0 5px;
 `;
 
 const FormatButton = styled.button`
@@ -583,7 +803,6 @@ const FormatButton = styled.button`
 `;
 
 const EmojiPickerButton = styled(FormatButton)`
-    margin-left: auto;
     position: relative;
 `;
 
@@ -625,50 +844,30 @@ const PreviewWrapper = styled.div`
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    background: #222c37;
     border-radius: 18px;
     padding: 1px;
     width: 100%;
     min-height: 400px;
+    /* overflow: visible; */
 `;
 
 const TelegramPostCard = styled.div`
-    background: #232e3c;
+    background: ${props => props.$isDarkMode ? '#232e3c' : '#f8f9fa'};
     border-radius: 18px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+    box-shadow: ${props => props.$isDarkMode
+        ? '0 4px 24px 0 rgba(255,255,255,0.08)'
+        : '0 4px 24px rgba(0,0,0,0.18)'};
     width: 100%;
     max-width: 420px;
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    overflow: hidden;
     height: 100%;
-`;
-
-const TelegramPostHeader = styled.div`
-    background: #4b90d6;
-    padding: 16px 20px 12px 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-`;
-
-const TelegramAvatar = styled.div`
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    font-weight: bold;
-    color: #4b90d6;
-    border: 2px solid #e3eaf3;
+    position: relative;
 `;
 
 const TelegramPostTitle = styled.div`
-    color: #fff;
+    color: ${props => props.$isDarkMode ? '#fff' : '#232e3c'};
     font-weight: 600;
     font-size: 18px;
     margin-bottom: 0;
@@ -699,7 +898,8 @@ const TelegramPostImage = styled.img`
 `;
 
 const TelegramPostContent = styled.div`
-    color: #fff;
+    color: ${props => props.$isDarkMode ? '#fff' : '#232e3c'};
+    background: none;
     line-height: 1.6;
     font-size: 15px;
     padding: 18px 20px 0 20px;
@@ -708,6 +908,12 @@ const TelegramPostContent = styled.div`
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
+    transition: color 0.2s;
+
+    a {
+        color: ${props => props.$isDarkMode ? '#7ecbff' : '#1a73e8'};
+        text-decoration: underline;
+    }
 `;
 
 const TelegramPostTags = styled.div`
@@ -747,21 +953,44 @@ const ButtonContainer = styled.div`
     margin-top: 10px;
     padding-top: 15px;
     border-top: 1px solid #e9ecef;
+
+    @media (max-width: 768px) {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px 0;
+    }
 `;
 
 const PreviewButton = styled.button`
-    background-color: #6c757d;
-    color: white;
-    border: none;
-    padding: 10px 20px;
+    background-color: #f8f9fa;
+    color: #495057;
+    border: 1px solid #ced4da;
+    padding: 8px 16px;
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
-    transition: background-color 0.3s;
-    flex: 1;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 36px;
+
+    @media (max-width: 768px) {
+        width: calc(100% - 36px);
+        margin-bottom: 0;
+        order: 2;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
 
     &:hover {
-        background-color: #5a6268;
+        background-color: #e9ecef;
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        transform: translateY(0);
     }
 `;
 
@@ -776,16 +1005,30 @@ const ModalOverlay = styled.div`
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    overflow-y: auto;
 `;
 
 const ModalContent = styled.div`
-    background-color: white;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 500px;
-    max-height: 90vh;
+    background-color: ${props => props.$isDarkMode ? '#232e3c' : 'white'};
+    border-radius: 12px;
+    width: 450px;
+    max-width: 95vw;
+    max-height: calc(100% - 64px);
+    margin: 32px 0;
     overflow-y: auto;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+
+    @media (max-width: 768px) {
+        width: 100vw;
+        height: 100vh;
+        max-width: 100vw;
+        max-height: 100vh;
+        margin: 0;
+        border-radius: 0;
+    }
 `;
 
 const ModalHeader = styled.div`
@@ -793,13 +1036,32 @@ const ModalHeader = styled.div`
     justify-content: space-between;
     align-items: center;
     padding: 15px 20px;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid ${props => props.$isDarkMode ? '#333' : '#e9ecef'};
+    background-color: ${props => props.$isDarkMode ? '#203754' : 'white'};
 `;
 
 const ModalTitle = styled.h3`
     margin: 0;
     font-size: 16px;
-    color: #212529;
+    color: ${props => props.$isDarkMode ? '#fff' : '#212529'};
+`;
+
+const ThemeToggleButton = styled.button`
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: ${props => props.$isDarkMode ? '#fff' : '#6c757d'};
+    padding: 5px;
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+
+    &:hover {
+        color: ${props => props.$isDarkMode ? '#fff' : '#343a40'};
+    }
 `;
 
 const CloseButton = styled.button`
@@ -807,10 +1069,15 @@ const CloseButton = styled.button`
     border: none;
     font-size: 20px;
     cursor: pointer;
-    color: #6c757d;
+    color: ${props => props.$isDarkMode ? '#fff' : '#6c757d'};
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
 
     &:hover {
-        color: #343a40;
+        color: ${props => props.$isDarkMode ? '#fff' : '#343a40'};
     }
 `;
 
@@ -856,6 +1123,11 @@ const LinkModal = styled.div`
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     z-index: 1000;
     width: 400px;
+
+    @media (max-width: 768px) {
+        width: 90%;
+        padding: 15px;
+    }
 `;
 
 const LinkModalOverlay = styled.div`
@@ -968,6 +1240,14 @@ const ScheduledPostContainer = styled.div`
     align-items: center;
     gap: 15px;
     margin-left: auto;
+
+    @media (max-width: 768px) {
+        margin-left: 0;
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
 `;
 
 const CheckboxLabel = styled.label`
@@ -987,10 +1267,11 @@ const Checkbox = styled.input`
 
 const DateTimeInput = styled.input`
     padding: 8px 12px;
-    border: 1px solid #ced4da;
+    border: 1px solid ${props => props.$error ? '#dc3545' : '#ced4da'};
     border-radius: 4px;
     font-size: 14px;
     color: #495057;
+    transition: border-color 0.3s;
 
     &:focus {
         outline: none;
@@ -1025,6 +1306,11 @@ const HashtagModal = styled.div`
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     z-index: 1000;
     width: 400px;
+
+    @media (max-width: 768px) {
+        width: 90%;
+        padding: 15px;
+    }
 `;
 
 const HashtagModalOverlay = styled.div`
@@ -1117,28 +1403,19 @@ const HashtagModalSubmitButton = styled(HashtagModalButton)`
     }
 `;
 
-const HashtagButton = styled.button`
-    display: flex;
-    width: 100%;
-    align-items: center;
-    gap: 6px;
-    background: rgba(25, 118, 210, 0.15);
-    color: #1976d2;
+const HashtagButton = styled(FormatButton)`
+    margin-left: auto;
+    background: none;
+    color: #2c3e50;
     font-weight: 600;
     font-size: 13px;
-    border: none;
-    border-radius: 8px;
-    padding: 7px 14px;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.06);
-    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
-    margin-bottom: 6px;
-    outline: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
 
     &:hover, &:focus {
-        background: rgba(25, 118, 210, 0.28);
-        box-shadow: 0 4px 16px rgba(25, 118, 210, 0.12);
-        transform: translateY(-1px) scale(1.03);
+        background: rgba(0, 0, 0, 0.05);
+        transform: translateY(-1px);
     }
 `;
 
@@ -1158,9 +1435,9 @@ const HashtagTitle = styled.div`
 `;
 
 const HashtagItem = styled.div`
-    background-color: #e3f2fd;
-    color: #1976d2;
-    padding: 4px 8px;
+    background-color: #f8f9fa;
+    color: #1a73e8;
+    padding: 4px 12px;
     border-radius: 4px;
     font-size: 12px;
     display: inline-flex;
@@ -1168,10 +1445,12 @@ const HashtagItem = styled.div`
     gap: 5px;
     width: auto;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
+    border: 1px solid #ced4da;
 
     &:hover {
-        background-color: #bbdefb;
+        background-color: #e9ecef;
+        border-color: #adb5bd;
     }
 `;
 
@@ -1185,9 +1464,11 @@ const HashtagRemoveButton = styled.button`
     padding: 0;
     display: flex;
     align-items: center;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
 
     &:hover {
-        color: #c82333;
+        opacity: 1;
     }
 `;
 
@@ -1296,6 +1577,12 @@ const PaginationContainer = styled.div`
     gap: 8px;
     margin-top: 20px;
     padding: 10px;
+    flex-wrap: wrap;
+
+    @media (max-width: 768px) {
+        gap: 4px;
+        margin-top: 15px;
+    }
 `;
 
 const PageButton = styled.button`
@@ -1306,6 +1593,11 @@ const PageButton = styled.button`
     color: ${props => props.$active ? 'white' : '#495057'};
     cursor: pointer;
     transition: all 0.2s ease;
+
+    @media (max-width: 768px) {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
 
     &:hover {
         background-color: ${props => props.$active ? '#2980b9' : '#f8f9fa'};
@@ -1334,7 +1626,51 @@ const ClearPeriodButton = styled.button`
         background-color: #e9ecef;
         color: #495057;
     }
+
+    @media (max-width: 768px) {
+        width: 100%;
+        justify-content: center;
+        margin-top: 2px;
+    }
 `;
+
+function prepareTelegramHtml(html) {
+    html = html.replace(/<span[^>]*>/gi, '').replace(/<\/span>/gi, '');
+    html = html.replace(/<(\w+)[^>]*>/gi, '<$1>');
+    html = html.replace(/<div>/gi, '\n').replace(/<\/div>/gi, '');
+    html = html.replace(/<p>/gi, '\n').replace(/<\/p>/gi, '');
+    html = html.replace(/<br\s*\/?>/gi, '\n');
+    html = html.replace(/[ \t]+\n/g, '\n').replace(/\n[ \t]+/g, '\n');
+    html = html.replace(/^\n+/, '').replace(/\n+$/, '');
+    // НЕ трогаем тройные переносы строк!
+    html = html.replace(/<(?!\/?(b|i|u|s|a|code|pre|strong|em)\b)[^>]+>/gi, '');
+    html = html.replace(/<strong>/gi, '<b>').replace(/<\/strong>/gi, '</b>');
+    html = html.replace(/<em>/gi, '<i>').replace(/<\/em>/gi, '</i>');
+    html = html.replace(/(.+)\n\1/g, '$1');
+    html = html.replace(/^\s*>\s?/gm, '');
+    return html;
+}
+
+// Функция для получения текста до курсора в contentEditable
+function getTextBeforeCursor(editableDiv) {
+    let sel = window.getSelection();
+    if (!sel.rangeCount) return '';
+    let range = sel.getRangeAt(0).cloneRange();
+    range.collapse(true);
+    range.setStart(editableDiv, 0);
+    return range.toString();
+}
+
+function getCurrentDateTimeLocal() {
+    const now = new Date();
+    const pad = n => n.toString().padStart(2, '0');
+    const yyyy = now.getFullYear();
+    const mm = pad(now.getMonth() + 1);
+    const dd = pad(now.getDate());
+    const hh = pad(now.getHours());
+    const min = pad(now.getMinutes());
+    return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+}
 
 const PostsPage = () => {
     const [posts, setPosts] = useState([]);
@@ -1377,6 +1713,10 @@ const PostsPage = () => {
     const [isDraftLoaded, setIsDraftLoaded] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const postsPerPage = 10;
+    const [isDarkMode, setIsDarkMode] = useState(false);
+    const formattedTextAreaRef = useRef(null);
+    const mentionRangeRef = useRef(null);
+    const [isDateInputError, setIsDateInputError] = useState(false);
 
     // Список смайликов
     const emojis = [
@@ -1496,10 +1836,22 @@ const PostsPage = () => {
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            setFormData({
-                ...formData,
+            // Проверяем тип файла
+            if (!file.type.startsWith('image/')) {
+                alert('Пожалуйста, выберите изображение');
+                return;
+            }
+
+            // Проверяем размер файла (максимум 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Размер изображения не должен превышать 5MB');
+                return;
+            }
+
+            setFormData(prev => ({
+                ...prev,
                 image: file
-            });
+            }));
 
             // Создаем URL для предпросмотра изображения
             const reader = new FileReader();
@@ -1579,32 +1931,78 @@ const PostsPage = () => {
         };
     }, []);
 
-    const handleUserSelect = (user) => {
-        const lastAtPos = formData.content.lastIndexOf('@');
-        if (lastAtPos !== -1) {
-            const beforeAt = formData.content.substring(0, lastAtPos);
-            const afterAt = formData.content.substring(lastAtPos + userMentionInput.length + 1);
-
-            // Обычный текст для textarea
-            const plainText = `${beforeAt}@${user.telegram_username}${afterAt}`;
-
-            // HTML-версия для предпросмотра с сохранением переносов строк
-            const htmlContent = `${beforeAt}<span class="user-mention">@${user.telegram_username}</span>${afterAt}`.replace(/\n/g, '<br>');
-
-            setFormData({
-                ...formData,
-                content: plainText,
-                contentHtml: htmlContent
-            });
-
-            if (!mentionedUsers.some(u => u.id === user.id)) {
-                setMentionedUsers([...mentionedUsers, user]);
-            }
-
-            setShowUserMentionDropdown(false);
-            setUserMentionInput('');
-            setFilteredUsers([]);
+    const handleUserSelectCE = (user) => {
+        const editableDiv = formattedTextAreaRef.current;
+        if (!editableDiv) return;
+        const sel = window.getSelection();
+        // Восстанавливаем range, если он был сохранён
+        if (mentionRangeRef.current) {
+            sel.removeAllRanges();
+            sel.addRange(mentionRangeRef.current);
         }
+        if (!sel.rangeCount) return;
+        const range = sel.getRangeAt(0);
+
+        // Клонируем range для поиска @
+        let searchRange = range.cloneRange();
+        searchRange.collapse(true);
+        searchRange.setStart(editableDiv, 0);
+        const textBeforeCursor = searchRange.toString();
+        const lastAt = textBeforeCursor.lastIndexOf('@');
+        if (lastAt === -1) return;
+
+        // Теперь перемещаем start range к позиции после @
+        // Для этого нужно пройтись по всем текстовым узлам и найти нужную позицию
+        let charCount = 0;
+        let found = false;
+        function walk(node) {
+            if (found) return;
+            if (node.nodeType === Node.TEXT_NODE) {
+                const nextCount = charCount + node.textContent.length;
+                if (lastAt >= charCount && lastAt < nextCount) {
+                    // Нашли нужный текстовый узел и offset
+                    const offset = lastAt - charCount + 1; // +1 чтобы после @
+                    range.setStart(node, offset);
+                    range.setEnd(node, range.endOffset);
+                    found = true;
+                }
+                charCount = nextCount;
+            } else {
+                for (let i = 0; i < node.childNodes.length; i++) {
+                    walk(node.childNodes[i]);
+                    if (found) break;
+                }
+            }
+        }
+        walk(editableDiv);
+
+        // Удаляем текст от @ до курсора
+        range.deleteContents();
+
+        // Вставляем username
+        const mentionNode = document.createTextNode(user.telegram_username);
+        range.insertNode(mentionNode);
+
+        // Перемещаем курсор после вставленного username
+        range.setStartAfter(mentionNode);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+
+        // Обновляем состояние
+        setFormData({
+            ...formData,
+            content: editableDiv.innerHTML,
+            contentHtml: editableDiv.innerHTML
+        });
+        if (!mentionedUsers.some(u => u.id === user.id)) {
+            setMentionedUsers([...mentionedUsers, user]);
+        }
+        setShowUserMentionDropdown(false);
+        setUserMentionInput('');
+        setFilteredUsers([]);
+        // Очищаем сохранённый range
+        mentionRangeRef.current = null;
     };
 
     const handleRemoveMentionedUser = (userId) => {
@@ -1621,8 +2019,14 @@ const PostsPage = () => {
                     ...prev,
                     title: parsed.title || '',
                     content: parsed.content || '',
-                    contentHtml: (parsed.content || '').replace(/\n/g, '<br>')
+                    contentHtml: (parsed.content || '')
                 }));
+                // Явно вставляем текст в contentEditable
+                setTimeout(() => {
+                    if (formattedTextAreaRef.current) {
+                        formattedTextAreaRef.current.innerHTML = parsed.content || '';
+                    }
+                }, 0);
             } catch (e) {
                 // ignore
             }
@@ -1653,6 +2057,17 @@ const PostsPage = () => {
 
     const handlePublish = async () => {
         try {
+            // Проверка даты для отложенного поста
+            if (isScheduled && scheduledDate) {
+                const now = new Date();
+                const scheduled = new Date(scheduledDate);
+                if (scheduled < now) {
+                    showNotification('Дата не может быть меньше текущей', 'error');
+                    setIsDateInputError(true);
+                    setTimeout(() => setIsDateInputError(false), 5000);
+                    return;
+                }
+            }
             setLoading(true);
 
             // Определяем цвет на основе типа поста
@@ -1667,15 +2082,29 @@ const PostsPage = () => {
                     case 'update':
                         return '#f1c40f';
                     default:
-                        return '#3498db'; // По умолчанию используем цвет для типа 'info'
+                        return '#3498db';
                 }
             })();
 
-            const preparedData = await postService.preparePostData(formData, color, scheduledDate);
+            // Очищаем и нормализуем HTML для Telegram
+            let normalizedHtml = prepareTelegramHtml(formData.content);
+
+            console.log("normalizedHtml", normalizedHtml);
+
+            const preparedData = await postService.preparePostData(
+                { ...formData, content: normalizedHtml, contentHtml: normalizedHtml },
+                color,
+                scheduledDate
+            );
 
             await postService.createPost(preparedData);
 
-            await loadPosts();
+            // Показываем уведомление в зависимости от типа публикации
+            if (isScheduled) {
+                showNotification('Пост поставлен в очередь', 'success');
+            } else {
+                showNotification('Пост успешно опубликован', 'success');
+            }
 
             setFormData({
                 title: '',
@@ -1685,7 +2114,11 @@ const PostsPage = () => {
             });
             setImagePreview(null);
             localStorage.removeItem('postDraft');
+            if (formattedTextAreaRef.current) {
+                formattedTextAreaRef.current.innerHTML = '';
+            }
         } catch (err) {
+            showNotification('Ошибка публикации', 'error');
             setError('Ошибка при сохранении поста');
             console.error('Ошибка при сохранении поста:', err);
         } finally {
@@ -1694,70 +2127,68 @@ const PostsPage = () => {
     };
 
     const handleFormatText = (format) => {
-        const textarea = document.getElementById('content');
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const text = formData.content;
-        const selectedText = text.substring(start, end);
+        const editor = document.querySelector('[contenteditable="true"]');
+        const selection = window.getSelection();
 
-        let formattedText = '';
+        if (!selection.rangeCount) return;
+
+        const range = selection.getRangeAt(0);
+        const selectedText = range.toString();
+
+        if (!selectedText) return;
 
         switch (format) {
             case 'bold':
-                formattedText = `<b>${selectedText}</b>`;
+                document.execCommand('bold', false);
                 break;
             case 'italic':
-                formattedText = `<i>${selectedText}</i>`;
+                document.execCommand('italic', false);
                 break;
             case 'underline':
-                formattedText = `<u>${selectedText}</u>`;
+                document.execCommand('underline', false);
                 break;
             case 'strikethrough':
-                formattedText = `<s>${selectedText}</s>`;
+                document.execCommand('strikethrough', false);
                 break;
             case 'link':
                 setShowLinkModal(true);
                 return;
             default:
-                formattedText = selectedText;
+                break;
         }
 
-        const newText = text.substring(0, start) + formattedText + text.substring(end);
-        const newHtmlText = newText.replace(/\n/g, '<br>');
-
+        // Обновляем состояние после форматирования
+        const value = editor.innerHTML;
         setFormData({
             ...formData,
-            content: newText,
-            contentHtml: newHtmlText
+            content: value,
+            contentHtml: value
         });
 
-        // Устанавливаем фокус обратно на текстовое поле
-        setTimeout(() => {
-            textarea.focus();
-            textarea.setSelectionRange(start + formattedText.length, start + formattedText.length);
-        }, 0);
+        // Восстанавливаем фокус на редакторе
+        editor.focus();
     };
 
     const handleEmojiClick = (emoji) => {
-        const textarea = document.getElementById('content');
-        const start = textarea.selectionStart;
-        const text = formData.content;
-
-        const newText = text.substring(0, start) + emoji + text.substring(start);
-        const newHtmlText = newText.replace(/\n/g, '<br>');
-
-        setFormData({
-            ...formData,
-            content: newText,
-            contentHtml: newHtmlText
-        });
-
-        // Устанавливаем фокус обратно на текстовое поле
-        setTimeout(() => {
-            textarea.focus();
-            textarea.setSelectionRange(start + emoji.length, start + emoji.length);
-        }, 0);
-
+        const editableDiv = formattedTextAreaRef.current;
+        if (!editableDiv) return;
+        const sel = window.getSelection();
+        if (!sel.rangeCount) return;
+        const range = sel.getRangeAt(0);
+        // Вставляем смайлик
+        const emojiNode = document.createTextNode(emoji);
+        range.insertNode(emojiNode);
+        // Перемещаем курсор после смайлика
+        range.setStartAfter(emojiNode);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+        // Обновляем состояние
+        setFormData(prev => ({
+            ...prev,
+            content: editableDiv.innerHTML,
+            contentHtml: editableDiv.innerHTML
+        }));
         setShowEmojiPicker(false);
     };
 
@@ -1902,28 +2333,30 @@ const PostsPage = () => {
         setHashtagInput('');
     };
 
-    const handleHashtagClick = (hashtag) => {
-        const textarea = document.getElementById('content');
-        const text = formData.content;
+    const handleHashtagClick = (hashtag, e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const editor = document.querySelector('[contenteditable="true"]');
+        if (!editor) return;
 
         // Добавляем пробел перед хештегом, если текст не пустой
-        const spaceBefore = text.length > 0 ? ' ' : '';
+        const spaceBefore = editor.textContent.length > 0 ? ' ' : '';
 
-        // Добавляем хештег в конец текста
-        const newText = text + spaceBefore + hashtag;
+        // Вставляем хештег в конец текста
+        const textNode = document.createTextNode(spaceBefore + hashtag);
+        editor.appendChild(textNode);
 
+        // Обновляем состояние
+        const value = editor.innerHTML;
         setFormData({
             ...formData,
-            content: newText,
-            contentHtml: newText.replace(/\n/g, '<br>')
+            content: value,
+            contentHtml: value
         });
 
-        // Устанавливаем курсор в конец текста
-        setTimeout(() => {
-            textarea.focus();
-            const newCursorPos = newText.length;
-            textarea.setSelectionRange(newCursorPos, newCursorPos);
-        }, 0);
+        // Восстанавливаем фокус на редакторе
+        editor.focus();
     };
 
     const updateDropdownPosition = () => {
@@ -2033,21 +2466,179 @@ const PostsPage = () => {
         };
     }, [showUserMentionDropdown, userMentionInput, filteredUsers]);
 
+    useEffect(() => {
+        if (showPreviewModal) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [showPreviewModal]);
+
+    const handleFormattedInput = (e) => {
+        const value = e.currentTarget.innerHTML;
+
+        // --- UserMentionDropdown logic for contentEditable ---
+        const editableDiv = e.currentTarget;
+        const textBeforeCursor = getTextBeforeCursor(editableDiv);
+        const cursorPos = textBeforeCursor.length;
+        const isAtSymbolJustTyped = textBeforeCursor[cursorPos - 1] === '@';
+        if (isAtSymbolJustTyped) {
+            setShowUserMentionDropdown(true);
+            setUserMentionInput('');
+            setFilteredUsers(users);
+            const sel = window.getSelection();
+            if (sel.rangeCount) {
+                mentionRangeRef.current = sel.getRangeAt(0).cloneRange();
+            }
+        } else if (showUserMentionDropdown) {
+            const lastAtPos = textBeforeCursor.lastIndexOf('@');
+            if (lastAtPos !== -1) {
+                const searchText = textBeforeCursor.substring(lastAtPos + 1, cursorPos).toLowerCase();
+                setUserMentionInput(searchText);
+                const filtered = users.filter(user => {
+                    const username = user.username || '';
+                    const fullName = user.full_name || '';
+                    return username.toLowerCase().includes(searchText) ||
+                        fullName.toLowerCase().includes(searchText);
+                });
+                setFilteredUsers(filtered);
+            } else {
+                setShowUserMentionDropdown(false);
+                setUserMentionInput('');
+                setFilteredUsers([]);
+            }
+        }
+
+        // После всей логики — обновляем состояние и черновик
+        setFormData(prev => {
+            const updated = {
+                ...prev,
+                content: value,
+                contentHtml: value
+            };
+            if (isDraftLoaded) {
+                localStorage.setItem('postDraft', JSON.stringify({
+                    title: updated.title,
+                    content: updated.content
+                }));
+            }
+            return updated;
+        });
+    };
+
+    // Вставка username в contentEditable
+    const handleUserSelect = (user) => {
+        const editableDiv = formattedTextAreaRef.current;
+        if (!editableDiv) return;
+        const sel = window.getSelection();
+        if (!sel.rangeCount) return;
+        const range = sel.getRangeAt(0);
+        // Найдём последнее вхождение @ до курсора
+        const textBeforeCursor = getTextBeforeCursor(editableDiv);
+        const lastAtPos = textBeforeCursor.lastIndexOf('@');
+        if (lastAtPos !== -1) {
+            // Удаляем текст после @ до курсора
+            range.setStart(editableDiv.firstChild || editableDiv, lastAtPos + 1);
+            range.deleteContents();
+            // Вставляем username
+            const mentionNode = document.createTextNode(user.telegram_username);
+            range.insertNode(mentionNode);
+            // Перемещаем курсор после вставленного username
+            range.setStartAfter(mentionNode);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            // Обновляем состояние
+            setFormData({
+                ...formData,
+                content: editableDiv.innerHTML,
+                contentHtml: editableDiv.innerHTML
+            });
+            if (!mentionedUsers.some(u => u.id === user.id)) {
+                setMentionedUsers([...mentionedUsers, user]);
+            }
+            setShowUserMentionDropdown(false);
+            setUserMentionInput('');
+            setFilteredUsers([]);
+        }
+    };
+
+    // Добавляю мобильную карточку для поста
+    const MobilePostCard = styled.div`
+        display: none;
+        @media (max-width: 768px) {
+            display: flex;
+            flex-direction: column;
+            padding: 12px 8px;
+            border-bottom: 1px solid #e9ecef;
+            background: white;
+        }
+    `;
+
+    const MobilePostTitle = styled.a`
+        font-weight: 600;
+        font-size: 15px;
+        color: #3498db;
+        text-decoration: none;
+        margin-bottom: 6px;
+        word-break: break-word;
+        &:hover {
+            text-decoration: underline;
+        }
+        &.deleted {
+            color: #aaa;
+            text-decoration: line-through;
+            pointer-events: none;
+            cursor: default;
+        }
+    `;
+
+    const MobilePostInfoRow = styled.div`
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    `;
+
+    const MobilePostDate = styled.span`
+        color: #888;
+        font-size: 12px;
+    `;
+
+    const MobilePostStats = styled.div`
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 13px;
+        color: #888;
+    `;
+
+    const MobileStat = styled.span`
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    `;
+
     return (
-        <Container style={{ flexDirection: 'column', gap: 0 }}>
+        <Container>
             <NewPostRow>
                 <NewPostContainer $postType={postType}>
                     <TitleContainer>
                         <Title>Новый пост</Title>
-                        <PostTypeSelect
-                            value={postType}
-                            onChange={(e) => setPostType(e.target.value)}
-                        >
-                            <PostTypeOption value="info">Инфо</PostTypeOption>
-                            <PostTypeOption value="rubric">Рубрика</PostTypeOption>
-                            <PostTypeOption value="challenge">Челлендж</PostTypeOption>
-                            <PostTypeOption value="update">Обновление</PostTypeOption>
-                        </PostTypeSelect>
+                        <SelectWrapper>
+                            <PostTypeSelect
+                                value={postType}
+                                onChange={(e) => setPostType(e.target.value)}
+                            >
+                                <PostTypeOption value="info">Инфо</PostTypeOption>
+                                <PostTypeOption value="rubric">Рубрика</PostTypeOption>
+                                <PostTypeOption value="challenge">Челлендж</PostTypeOption>
+                                <PostTypeOption value="update">Обновление</PostTypeOption>
+                            </PostTypeSelect>
+                            <FaChevronDown size={14} />
+                        </SelectWrapper>
                         <ScheduledPostContainer>
                             <CheckboxLabel>
                                 <Checkbox
@@ -2062,6 +2653,8 @@ const PostsPage = () => {
                                     type="datetime-local"
                                     value={scheduledDate}
                                     onChange={(e) => setScheduledDate(e.target.value)}
+                                    min={getCurrentDateTimeLocal()}
+                                    $error={isDateInputError}
                                 />
                             )}
                         </ScheduledPostContainer>
@@ -2093,9 +2686,11 @@ const PostsPage = () => {
                                 <FormatButton onClick={() => handleFormatText('strikethrough')} title="Зачеркнутый">
                                     <s>S</s>
                                 </FormatButton>
+                                <Divider />
                                 <FormatButton onClick={() => handleFormatText('link')} title="Добавить ссылку">
-                                    🔗
+                                    <FaLink size={14} />
                                 </FormatButton>
+                                <Divider />
                                 <EmojiPickerButton onClick={toggleEmojiPicker} title="Добавить смайлик" ref={emojiPickerRef}>
                                     😊
                                     {showEmojiPicker && (
@@ -2108,128 +2703,133 @@ const PostsPage = () => {
                                         </EmojiPickerDropdown>
                                     )}
                                 </EmojiPickerButton>
+                                <HashtagButton onClick={() => setShowHashtagModal(true)}>
+                                    + Хештег
+                                </HashtagButton>
                             </FormattingToolbar>
                             <TextAreaContainer>
-                                <TextAreaWrapper>
-                                    <TextAreaBlock>
-                                        <TextArea
-                                            ref={textareaRef}
-                                            id="content"
-                                            name="content"
-                                            value={formData.content}
-                                            onChange={handleContentChange}
-                                            placeholder="Введите текст поста"
-                                        />
-                                    </TextAreaBlock>
-                                    <SideActionsBlock>
-                                        <ImageActions>
-                                            <ImageUploadButton htmlFor="image">
-                                                Загрузить изображение
-                                            </ImageUploadButton>
-                                            <HiddenFileInput
-                                                type="file"
-                                                id="image"
-                                                accept="image/*"
-                                                onChange={handleImageChange}
-                                            />
-                                            {imagePreview && (
-                                                <DeleteImageButton onClick={handleRemoveImage}>
-                                                    Удалить изображение
-                                                </DeleteImageButton>
-                                            )}
-                                        </ImageActions>
-                                        <HashtagContainer>
-                                            {hashtags.map((hashtag, index) => (
-                                                <HashtagItem
-                                                    key={index}
-                                                    onClick={() => handleHashtagClick(hashtag)}
-                                                >
-                                                    {hashtag}
-                                                    <HashtagRemoveButton onClick={() => handleRemoveHashtag(hashtag)}>
-                                                        ×
-                                                    </HashtagRemoveButton>
-                                                </HashtagItem>
-                                            ))}
-                                            <HashtagButton onClick={() => setShowHashtagModal(true)}>
-                                                + Добавить хештег
-                                            </HashtagButton>
-                                        </HashtagContainer>
-                                        {showUserMentionDropdown && (
-                                            <UserMentionDropdown
-                                                ref={dropdownRef}
-                                                $show={showUserMentionDropdown}
+                                <FormattedTextArea
+                                    contentEditable
+                                    suppressContentEditableWarning
+                                    onInput={handleFormattedInput}
+                                    onBlur={(e) => {
+                                        const value = e.currentTarget.innerHTML;
+                                        setFormData({
+                                            ...formData,
+                                            content: value,
+                                            contentHtml: value
+                                        });
+                                    }}
+                                    onPaste={(e) => {
+                                        e.preventDefault();
+                                        const text = e.clipboardData.getData('text/plain');
+                                        document.execCommand('insertText', false, text);
+                                    }}
+                                    ref={formattedTextAreaRef}
+                                />
+                                <ImageActions>
+                                    <ImageUploadButton htmlFor="image">
+                                        Загрузить изображение
+                                    </ImageUploadButton>
+                                    <HiddenFileInput
+                                        type="file"
+                                        id="image"
+                                        accept="image/*"
+                                        onChange={handleImageChange}
+                                    />
+                                    {imagePreview && (
+                                        <>
+                                            <DeleteImageButton onClick={handleRemoveImage} title="Удалить изображение">
+                                                <FaTrash size={16} />
+                                            </DeleteImageButton>
+                                            <ImagePreview>
+                                                <ImagePreviewImg src={imagePreview} alt="Preview" />
+                                            </ImagePreview>
+                                        </>
+                                    )}
+                                </ImageActions>
+                                <HashtagContainer>
+                                    {hashtags.map((hashtag, index) => (
+                                        <HashtagItem
+                                            key={index}
+                                            onClick={(e) => handleHashtagClick(hashtag, e)}
+                                        >
+                                            {hashtag}
+                                            <HashtagRemoveButton
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    handleRemoveHashtag(hashtag);
+                                                }}
                                             >
-                                                <UserMentionSearch
-                                                    type="text"
-                                                    placeholder="Поиск пользователей..."
-                                                    value={userMentionInput}
-                                                    onChange={(e) => setUserMentionInput(e.target.value)}
-                                                />
-                                                <UserMentionListWrapper>
-                                                    {loading ? (
-                                                        <UserMentionItem>Загрузка пользователей...</UserMentionItem>
-                                                    ) : error ? (
-                                                        <UserMentionItem>Ошибка загрузки пользователей</UserMentionItem>
-                                                    ) : filteredUsers && filteredUsers.length > 0 ? (
-                                                        filteredUsers.map(user => (
-                                                            <UserMentionItem
-                                                                key={user.id}
-                                                                onClick={() => handleUserSelect(user)}
-                                                            >
-                                                                <UserAvatar>
-                                                                    {user.fio && user.fio.charAt(0).toUpperCase()}
-                                                                </UserAvatar>
-                                                                <UserInfo>
-                                                                    <UserName>
-                                                                        {user.fio || 'Без имени'}
-                                                                        {user.is_verified && <VerifiedBadge>✓</VerifiedBadge>}
-                                                                    </UserName>
-                                                                    <UserUsername>@{user.telegram_username || 'username'}</UserUsername>
-                                                                </UserInfo>
-                                                            </UserMentionItem>
-                                                        ))
-                                                    ) : (
-                                                        <UserMentionItem>Нет доступных пользователей</UserMentionItem>
-                                                    )}
-                                                </UserMentionListWrapper>
-                                            </UserMentionDropdown>
-                                        )}
-                                    </SideActionsBlock>
-                                </TextAreaWrapper>
+                                                ×
+                                            </HashtagRemoveButton>
+                                        </HashtagItem>
+                                    ))}
+                                </HashtagContainer>
+                                {showUserMentionDropdown && (
+                                    <UserMentionDropdown
+                                        ref={dropdownRef}
+                                        $show={showUserMentionDropdown}
+                                    >
+                                        <UserMentionSearch
+                                            type="text"
+                                            placeholder="Поиск пользователей..."
+                                            value={userMentionInput}
+                                            onChange={(e) => setUserMentionInput(e.target.value)}
+                                        />
+                                        <UserMentionListWrapper>
+                                            {loading ? (
+                                                <UserMentionItem>Загрузка пользователей...</UserMentionItem>
+                                            ) : error ? (
+                                                <UserMentionItem>Ошибка загрузки пользователей</UserMentionItem>
+                                            ) : filteredUsers && filteredUsers.length > 0 ? (
+                                                filteredUsers.map(user => (
+                                                    <UserMentionItem
+                                                        key={user.id}
+                                                        onMouseDown={e => { e.preventDefault(); handleUserSelectCE(user); }}
+                                                    >
+                                                        <UserAvatar>
+                                                            {user.fio && user.fio.charAt(0).toUpperCase()}
+                                                        </UserAvatar>
+                                                        <UserInfo>
+                                                            <UserName>
+                                                                {user.fio || 'Без имени'}
+                                                                {user.is_verified && <VerifiedBadge>✓</VerifiedBadge>}
+                                                            </UserName>
+                                                            <UserUsername>@{user.telegram_username || 'username'}</UserUsername>
+                                                        </UserInfo>
+                                                    </UserMentionItem>
+                                                ))
+                                            ) : (
+                                                <UserMentionItem>Нет доступных пользователей</UserMentionItem>
+                                            )}
+                                        </UserMentionListWrapper>
+                                    </UserMentionDropdown>
+                                )}
                             </TextAreaContainer>
                         </FormGroup>
                     </FormContent>
                     <ButtonContainer>
                         <PublishButton onClick={handlePublish}>
+                            <FaPaperPlane size={14} />
                             Опубликовать
                         </PublishButton>
-                        <PreviewButton style={{ background: '#f8d7da', color: '#dc3545' }} onClick={handleResetDraft}>
-                            Сбросить черновик
+                        <PreviewButton onClick={handlePreviewClick}>
+                            <FaEye size={14} />
+                            Предпросмотр
                         </PreviewButton>
+                        <ResetDraftButton onClick={handleResetDraft} title="Сбросить черновик">
+                            <FaUndo size={14} />
+                        </ResetDraftButton>
                     </ButtonContainer>
                 </NewPostContainer>
-                <PreviewPostContainer>
-                    <PreviewWrapper>
-                        <TelegramPostCard>
-                            {imagePreview && (
-                                <TelegramPostImage src={imagePreview} alt="Изображение поста" $postType={postType} />
-                            )}
-                            {formData.title && (
-                                <TelegramPostTitle>{formData.title}</TelegramPostTitle>
-                            )}
-                            <TelegramPostContent dangerouslySetInnerHTML={{ __html: formData.contentHtml || 'Текст поста отсутствует' }} />
-                            <TelegramPostFooter>
-                                <ClockIcon />
-                                <span>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                            </TelegramPostFooter>
-                        </TelegramPostCard>
-                    </PreviewWrapper>
-                </PreviewPostContainer>
             </NewPostRow>
             <PostsTableContainer>
                 <TableHeaderContainer>
                     <Title>Посты</Title>
                     <FetchPostsButton onClick={handleFetchChannelPosts}>
+                        <FaSync style={{ marginRight: 8 }} />
                         Синхронизировать посты с канала
                     </FetchPostsButton>
                 </TableHeaderContainer>
@@ -2263,7 +2863,8 @@ const PostsPage = () => {
                 {loading && <LoadingSpinner>Загрузка...</LoadingSpinner>}
                 {error && <ErrorMessage>{error}</ErrorMessage>}
                 <TableWrapper>
-                    <Table>
+                    {/* Desktop table */}
+                    <Table className="desktop-table">
                         <TableHeader>
                             <tr>
                                 <TableHeaderCell>Дата публикации</TableHeaderCell>
@@ -2294,89 +2895,129 @@ const PostsPage = () => {
                             })}
                         </tbody>
                     </Table>
-                    {totalPages > 1 && (
-                        <PaginationContainer>
-                            <PageButton
-                                onClick={() => setCurrentPage(1)}
-                                disabled={currentPage === 1}
-                            >
-                                «
-                            </PageButton>
-                            <PageButton
-                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                disabled={currentPage === 1}
-                            >
-                                ‹
-                            </PageButton>
-                            {Array.from({ length: totalPages }, (_, i) => i + 1)
-                                .filter(page => {
-                                    if (totalPages <= 5) return true;
-                                    if (page === 1 || page === totalPages) return true;
-                                    if (Math.abs(page - currentPage) <= 1) return true;
-                                    return false;
-                                })
-                                .map((page, index, array) => {
-                                    if (index > 0 && array[index - 1] !== page - 1) {
-                                        return (
-                                            <React.Fragment key={`ellipsis-${page}`}>
-                                                <span>...</span>
-                                                <PageButton
-                                                    $active={currentPage === page}
-                                                    onClick={() => setCurrentPage(page)}
-                                                >
-                                                    {page}
-                                                </PageButton>
-                                            </React.Fragment>
-                                        );
-                                    }
-                                    return (
-                                        <PageButton
-                                            key={page}
-                                            $active={currentPage === page}
-                                            onClick={() => setCurrentPage(page)}
-                                        >
-                                            {page}
-                                        </PageButton>
-                                    );
-                                })}
-                            <PageButton
-                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                disabled={currentPage === totalPages}
-                            >
-                                ›
-                            </PageButton>
-                            <PageButton
-                                onClick={() => setCurrentPage(totalPages)}
-                                disabled={currentPage === totalPages}
-                            >
-                                »
-                            </PageButton>
-                        </PaginationContainer>
-                    )}
+                    {/* Mobile cards */}
+                    <MobileTable>
+                        {currentPosts.map(post => (
+                            <MobilePostCard key={post.id}>
+                                {post.is_deleted ? (
+                                    <MobilePostTitle as="div" className="deleted">
+                                        {post.title}
+                                    </MobilePostTitle>
+                                ) : (
+                                    <MobilePostTitle href={post.link_telegram} target="_blank" rel="noopener noreferrer">
+                                        {post.title}
+                                    </MobilePostTitle>
+                                )}
+                                <MobilePostInfoRow>
+                                    <MobilePostDate>{new Date(post.date_publish).toLocaleDateString()}</MobilePostDate>
+                                    <MobilePostStats>
+                                        <MobileStat><FaEye size={13} /> {post.views}</MobileStat>
+                                        <MobileStat><FaHeart size={13} /> {post.likes}</MobileStat>
+                                    </MobilePostStats>
+                                </MobilePostInfoRow>
+                            </MobilePostCard>
+                        ))}
+                    </MobileTable>
                 </TableWrapper>
+                {totalPages > 1 && (
+                    <PaginationContainer>
+                        <PageButton
+                            onClick={() => setCurrentPage(1)}
+                            disabled={currentPage === 1}
+                        >
+                            «
+                        </PageButton>
+                        <PageButton
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                        >
+                            ‹
+                        </PageButton>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1)
+                            .filter(page => {
+                                if (totalPages <= 5) return true;
+                                if (page === 1 || page === totalPages) return true;
+                                if (Math.abs(page - currentPage) <= 1) return true;
+                                return false;
+                            })
+                            .map((page, index, array) => {
+                                if (index > 0 && array[index - 1] !== page - 1) {
+                                    return (
+                                        <React.Fragment key={`ellipsis-${page}`}>
+                                            <span>...</span>
+                                            <PageButton
+                                                $active={currentPage === page}
+                                                onClick={() => setCurrentPage(page)}
+                                            >
+                                                {page}
+                                            </PageButton>
+                                        </React.Fragment>
+                                    );
+                                }
+                                return (
+                                    <PageButton
+                                        key={page}
+                                        $active={currentPage === page}
+                                        onClick={() => setCurrentPage(page)}
+                                    >
+                                        {page}
+                                    </PageButton>
+                                );
+                            })}
+                        <PageButton
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                        >
+                            ›
+                        </PageButton>
+                        <PageButton
+                            onClick={() => setCurrentPage(totalPages)}
+                            disabled={currentPage === totalPages}
+                        >
+                            »
+                        </PageButton>
+                    </PaginationContainer>
+                )}
             </PostsTableContainer>
 
             {showPreviewModal && (
                 <ModalOverlay onClick={handleClosePreview}>
-                    <ModalContent onClick={(e) => e.stopPropagation()}>
-                        <ModalHeader>
-                            <ModalTitle>Предпросмотр поста в Telegram</ModalTitle>
-                            <CloseButton onClick={handleClosePreview}>&times;</CloseButton>
+                    <ModalContent onClick={(e) => e.stopPropagation()} $isDarkMode={isDarkMode}>
+                        <ModalHeader $isDarkMode={isDarkMode}>
+                            <ModalTitle $isDarkMode={isDarkMode}>Предпросмотр поста в Telegram</ModalTitle>
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <ThemeToggleButton
+                                    onClick={() => setIsDarkMode(!isDarkMode)}
+                                    $isDarkMode={isDarkMode}
+                                    title={isDarkMode ? "Переключить на светлую тему" : "Переключить на темную тему"}
+                                >
+                                    {isDarkMode ? <FaSun size={18} /> : <FaMoon size={18} />}
+                                </ThemeToggleButton>
+                                <CloseButton onClick={handleClosePreview} $isDarkMode={isDarkMode}>
+                                    &times;
+                                </CloseButton>
+                            </div>
                         </ModalHeader>
-                        <TelegramPostContainer>
-                            <TelegramPostHeader>
-                                <TelegramAvatar>
-                                    {formData.title.charAt(0).toUpperCase()}
-                                </TelegramAvatar>
-                                <TelegramPostInfo>
-                                    <TelegramPostDate>{new Date().toLocaleDateString()}</TelegramPostDate>
-                                </TelegramPostInfo>
-                            </TelegramPostHeader>
-                            <TelegramPostContent dangerouslySetInnerHTML={{ __html: formData.contentHtml || 'Текст поста отсутствует' }} />
-                            {imagePreview && (
-                                <TelegramPostImage src={imagePreview} alt="Изображение поста" $postType={postType} />
-                            )}
-                        </TelegramPostContainer>
+                        <PreviewPostContainer $isDarkMode={isDarkMode}>
+                            <PreviewWrapper>
+                                <TelegramPostCard $isDarkMode={isDarkMode}>
+                                    {imagePreview && (
+                                        <TelegramPostImage src={imagePreview} alt="Изображение поста" $postType={postType} />
+                                    )}
+                                    {formData.title && (
+                                        <TelegramPostTitle $isDarkMode={isDarkMode}>{formData.title}</TelegramPostTitle>
+                                    )}
+                                    <TelegramPostContent
+                                        $isDarkMode={isDarkMode}
+                                        dangerouslySetInnerHTML={{ __html: formData.contentHtml || 'Текст поста отсутствует' }}
+                                    />
+                                    <TelegramPostFooter>
+                                        <ClockIcon />
+                                        <span>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                    </TelegramPostFooter>
+                                </TelegramPostCard>
+                            </PreviewWrapper>
+                        </PreviewPostContainer>
                     </ModalContent>
                 </ModalOverlay>
             )}

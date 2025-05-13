@@ -6,6 +6,7 @@ import UserModal from '../../components/users/UserModal';
 import { Modal, ModalContent, Button } from '../../components/Modal.jsx';
 import { toast } from 'react-hot-toast';
 import { MdPersonAdd, MdGroup, MdVerified, MdAdminPanelSettings } from 'react-icons/md';
+import { showNotification } from '../../utils/showNotification';
 
 const Container = styled.div`
     padding: 20px;
@@ -513,33 +514,6 @@ const UsersPage = () => {
         return modalAction === 'delete'
             ? `Вы уверены, что хотите удалить пользователя ${selectedUser?.fio}? Это действие нельзя отменить.`
             : `Вы уверены, что хотите удалить пользователя ${selectedUser?.fio} из канала? Это действие нельзя отменить.`;
-    };
-
-    // Универсальная функция показа уведомления
-    const showNotification = (message, type = 'success') => {
-        if (window.innerWidth <= 768) {
-            setMobileNotification({ message, type });
-            setMobileNotificationVisible(true);
-            setTimeout(() => setMobileNotificationVisible(false), 1700); // Начинаем плавное исчезновение
-            setTimeout(() => setMobileNotification(null), 2000); // Убираем из DOM
-        } else {
-            toast[type](message, {
-                duration: 2000,
-                position: 'bottom-right',
-                style: {
-                    background: type === 'success' ? '#e6f9ed' : '#fdeaea',
-                    color: type === 'success' ? '#218838' : '#c0392b',
-                    border: '1px solid ' + (type === 'success' ? '#b7e4c7' : '#f5c6cb'),
-                    borderRadius: '10px',
-                    fontSize: '15px',
-                    boxShadow: '0 2px 12px rgba(0,0,0,0.08)'
-                },
-                iconTheme: {
-                    primary: type === 'success' ? '#34c759' : '#e74c3c',
-                    secondary: '#fff',
-                },
-            });
-        }
     };
 
     return (
